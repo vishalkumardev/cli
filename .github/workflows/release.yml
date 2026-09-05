@@ -12,8 +12,8 @@ permissions:
   contents: write
 
 jobs:
-  create-tag:
-    name: Determine Release Tag
+  create-release:
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.get_tag.outputs.tag }}
@@ -23,7 +23,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Auto Tag Release (if on main branch)
+      - name: Auto Tag Release
         id: tagger
         if: !startsWith(github.ref, 'refs/tags/')
         uses: anothrNick/github-tag-action@1.71.0
@@ -33,20 +33,35 @@ jobs:
           DEFAULT_BUMP: patch
           RELEASE_BRANCHES: main
 
-      - name: Set Tag Output
+      - name: Calculate Release Tag
         id: get_tag
         run: |
           if [ "${{ startsWith(github.ref, 'refs/tags/') }}" = "true" ]; then
             TAG_NAME="${GITHUB_REF#refs/tags/}"
-          else
+          elif [ -n "${{ steps.tagger.outputs.new_tag }}" ]; then
             TAG_NAME="${{ steps.tagger.outputs.new_tag }}"
+          elif [ -n "${{ steps.tagger.outputs.tag }}" ]; then
+            TAG_NAME="${{ steps.tagger.outputs.tag }}"
+          else
+            TAG_NAME="v0.1.$(date +'%Y%m%d%H%M%S')"
           fi
           echo "tag=${TAG_NAME}" >> $GITHUB_OUTPUT
           echo "Release tag is: ${TAG_NAME}"
 
-  build-and-publish:
-    name: Build & Package (${{ matrix.goos }}/${{ matrix.goarch }})
-    needs: create-tag
+      - name: Create Initial Release Entry
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_tag.outputs.tag }}
+          name: Release ${{ steps.get_tag.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-and-upload:
+    name: Build & Upload (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: create-release
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -54,22 +69,16 @@ jobs:
         include:
           - goos: darwin
             goarch: arm64
-            archive_ext: tar.gz
           - goos: darwin
             goarch: amd64
-            archive_ext: tar.gz
           - goos: linux
             goarch: amd64
-            archive_ext: tar.gz
           - goos: linux
             goarch: arm64
-            archive_ext: tar.gz
           - goos: windows
             goarch: amd64
-            archive_ext: zip
           - goos: windows
             goarch: arm64
-            archive_ext: zip
 
     steps:
       - name: Checkout Code
@@ -86,7 +95,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: 0
-          VERSION: ${{ needs.create-tag.outputs.tag }}
+          VERSION: ${{ needs.create-release.outputs.tag }}
         run: |
           BINARY_NAME="buildshare"
           if [ "${{ matrix.goos }}" = "windows" ]; then
@@ -97,7 +106,7 @@ jobs:
 
       - name: Create Package Archive
         run: |
-          TAG="${{ needs.create-tag.outputs.tag }}"
+          TAG="${{ needs.create-release.outputs.tag }}"
           ARCHIVE_NAME="buildshare_${TAG}_${{ matrix.goos }}_${{ matrix.goarch }}"
           
           cd dist
@@ -107,13 +116,11 @@ jobs:
             tar -czvf "../${ARCHIVE_NAME}.tar.gz" buildshare
           fi
           cd ..
-          ls -la buildshare_*
 
-      - name: Upload Binary Package to GitHub Release
+      - name: Upload Binary Package to Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create-tag.outputs.tag }}
+          tag_name: ${{ needs.create-release.outputs.tag }}
           files: buildshare_*.*
-          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
