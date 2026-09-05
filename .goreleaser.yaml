@@ -1,0 +1,56 @@
+# .goreleaser.yaml
+# Documentation: https://goreleaser.com
+version: 2
+
+project_name: buildshare
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: buildshare
+    main: ./main.go
+    binary: buildshare
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/buildshare/cli/cmd/buildshare.Version={{.Version}}
+      - -X github.com/buildshare/cli/cmd/buildshare.Commit={{.FullCommit}}
+      - -X github.com/buildshare/cli/cmd/buildshare.BuildDate={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+      - .buildshare.yaml
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "merge conflict"
+      - Merge pull request
+      - Merge branch
