@@ -1,9 +1,9 @@
 #!/bin/sh
 # BuildShare CLI Installer for macOS and Linux
-# https://buildshare.in
+# https://vishalkumardev.github.io/cli/
 #
 # Usage:
-#   curl -fsSL https://buildshare.in/install.sh | sh
+#   curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh
 #
 # Environment variables:
 #   BUILDSHARE_INSTALL_DIR  Custom directory to install the binary into
@@ -53,7 +53,7 @@ case "$RAW_OS" in
         echo "${COLOR_RED}Error: Unsupported operating system: ${RAW_OS}${COLOR_RESET}" >&2
         echo "BuildShare CLI currently supports macOS and Linux via install.sh." >&2
         echo "For Windows, install via PowerShell:" >&2
-        echo "  irm https://buildshare.in/install.ps1 | iex" >&2
+        echo "  irm https://vishalkumardev.github.io/cli/install.ps1 | iex" >&2
         exit 1
         ;;
 esac

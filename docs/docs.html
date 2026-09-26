@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Documentation — BuildShare CLI</title>
+    <meta
+      name="description"
+      content="Complete reference documentation for BuildShare CLI. Installation, authentication, uploading builds, CI/CD integration, environment variables, and all commands."
+    />
+    <meta property="og:title" content="BuildShare CLI Documentation" />
+    <meta
+      property="og:description"
+      content="Complete reference for the BuildShare CLI tool. All commands, flags, and CI/CD integration guides."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://vishalkumardev.github.io/cli/docs.html"
+    />
+
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS v4 Browser Build -->
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
+    <!-- Custom Styling & Fonts -->
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>"
+    />
+
+    <style>
+      /* Docs-specific styles */
+      .doc-section {
+        scroll-margin-top: 80px;
+      }
+      .sidebar-link {
+        transition: all 0.15s;
+      }
+      .sidebar-link.active {
+        color: #818cf8;
+        border-left-color: #818cf8;
+      }
+      .prose-doc h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f1f5f9;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+      .prose-doc h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #e2e8f0;
+        margin-top: 1.75rem;
+        margin-bottom: 0.625rem;
+      }
+      .prose-doc p {
+        color: #94a3b8;
+        line-height: 1.75;
+        margin-bottom: 1rem;
+        font-size: 0.9375rem;
+      }
+      .prose-doc ul {
+        list-style: none;
+        padding: 0;
+        margin-bottom: 1rem;
+      }
+      .prose-doc ul li {
+        color: #94a3b8;
+        font-size: 0.9375rem;
+        padding-left: 1.25rem;
+        position: relative;
+        margin-bottom: 0.4rem;
+        line-height: 1.65;
+      }
+      .prose-doc ul li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: #6366f1;
+        font-size: 0.75rem;
+        top: 0.1rem;
+      }
+      .prose-doc table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+        font-size: 0.875rem;
+      }
+      .prose-doc th {
+        background: rgba(99, 102, 241, 0.08);
+        color: #c7d2fe;
+        font-weight: 600;
+        text-align: left;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .prose-doc td {
+        color: #94a3b8;
+        padding: 0.5rem 0.875rem;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: top;
+      }
+      .prose-doc tr:nth-child(even) td {
+        background: rgba(15, 23, 42, 0.4);
+      }
+      .prose-doc a {
+        color: #818cf8;
+        text-decoration: underline;
+      }
+      .prose-doc a:hover {
+        color: #a5b4fc;
+      }
+      .note-box {
+        background: rgba(99, 102, 241, 0.08);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+      .note-box p {
+        margin-bottom: 0;
+        color: #c7d2fe;
+        font-size: 0.875rem;
+      }
+      .warn-box {
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.25rem;
+      }
+      .warn-box p {
+        margin-bottom: 0;
+        color: #fcd34d;
+        font-size: 0.875rem;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-[#090d16] text-slate-100 antialiased selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col relative overflow-x-hidden"
+  >
+    <!-- Ambient glows -->
+    <div
+      class="fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] bg-gradient-to-tr from-indigo-600/15 via-purple-600/10 to-cyan-500/8 blur-[120px] rounded-full pointer-events-none -z-10"
+    ></div>
+
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 backdrop-blur-xl bg-[#090d16]/80 border-b border-slate-800/80"
+    >
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+      >
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div
+            class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-300"
+          >
+            <svg
+              class="w-5 h-5 text-white"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div class="flex items-center gap-2">
+            <span
+              class="font-bold text-lg tracking-tight text-white group-hover:text-indigo-400 transition-colors"
+              >BuildShare</span
+            >
+            <span
+              class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30"
+              >CLI</span
+            >
+          </div>
+        </a>
+
+        <nav class="flex items-center gap-5">
+          <a
+            href="index.html"
+            class="hidden md:inline-block text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >Home</a
+          >
+          <a
+            href="index.html#downloads"
+            class="hidden md:inline-block text-sm font-medium text-slate-300 hover:text-white transition-colors"
+            >Downloads</a
+          >
+          <span
+            class="hidden md:inline-block text-sm font-semibold text-indigo-400 border-b border-indigo-500/50 pb-0.5"
+            >Docs</span
+          >
+        </nav>
+      </div>
+    </header>
+
+    <div
+      class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 flex gap-10"
+    >
+      <!-- Sidebar (desktop) -->
+      <aside
+        class="hidden lg:block w-60 flex-shrink-0 sticky top-24 self-start max-h-[calc(100vh-6rem)] overflow-y-auto pr-2"
+      >
+        <nav class="space-y-0.5 text-sm">
+          <p
+            class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-3 px-3"
+          >
+            Getting Started
+          </p>
+          <a
+            href="#overview"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Overview</a
+          >
+          <a
+            href="#installation"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Installation</a
+          >
+          <a
+            href="#quick-start"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Quick Start</a
+          >
+
+          <p
+            class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-5 mb-3 px-3"
+          >
+            Commands
+          </p>
+          <a
+            href="#cmd-login"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >login</a
+          >
+          <a
+            href="#cmd-logout"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >logout</a
+          >
+          <a
+            href="#cmd-whoami"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >whoami</a
+          >
+          <a
+            href="#cmd-upload"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >upload</a
+          >
+          <a
+            href="#cmd-app"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >app</a
+          >
+          <a
+            href="#cmd-build"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >build</a
+          >
+          <a
+            href="#cmd-version"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >version</a
+          >
+
+          <p
+            class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-5 mb-3 px-3"
+          >
+            Guides
+          </p>
+          <a
+            href="#global-flags"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Global Flags</a
+          >
+          <a
+            href="#env-vars"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Environment Vars</a
+          >
+          <a
+            href="#cicd"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >CI/CD Integration</a
+          >
+          <a
+            href="#exit-codes"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Exit Codes</a
+          >
+          <a
+            href="#manual-install"
+            class="sidebar-link block px-3 py-1.5 rounded-lg border-l-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-800/50"
+            >Manual Install</a
+          >
+        </nav>
+      </aside>
+
+      <!-- Main content -->
+      <main class="flex-1 min-w-0 prose-doc">
+        <!-- Page title -->
+        <div class="mb-10 pb-8 border-b border-slate-800/80">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/25 text-indigo-300 text-xs font-medium mb-4"
+          >
+            <svg
+              class="w-3.5 h-3.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              ></path>
+            </svg>
+            Documentation
+          </div>
+          <h1
+            class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-3"
+          >
+            BuildShare CLI Reference
+          </h1>
+          <p class="text-slate-400 text-base leading-relaxed max-w-2xl">
+            Complete reference for installing, configuring, and using the
+            BuildShare CLI to distribute mobile app builds from your terminal or
+            CI/CD pipeline.
+          </p>
+        </div>
+
+        <!-- ── OVERVIEW ─────────────────────────────────────────── -->
+        <section id="overview" class="doc-section">
+          <h2>Overview</h2>
+          <p>
+            The <strong class="text-slate-200">BuildShare CLI</strong> is a
+            compiled Go binary that lets you upload, manage, and share Android
+            APK and iOS IPA builds directly from your terminal. It has
+            <strong class="text-slate-200">zero runtime dependencies</strong> —
+            no Node.js, Python, Ruby, or package manager required.
+          </p>
+          <ul>
+            <li>
+              Single standalone binary — runs on macOS, Linux, and Windows
+            </li>
+            <li>
+              Automatic OS &amp; architecture detection during installation
+            </li>
+            <li>
+              Headless CI mode with structured JSON output and clean exit codes
+            </li>
+            <li>
+              Token-based authentication compatible with all CI/CD platforms
+            </li>
+            <li>Real-time upload progress with shareable download links</li>
+          </ul>
+        </section>
+
+        <!-- ── INSTALLATION ────────────────────────────────────── -->
+        <section id="installation" class="doc-section">
+          <h2>Installation</h2>
+
+          <h3>macOS &amp; Linux</h3>
+          <p>
+            Run the one-liner installer — it detects your OS and CPU
+            architecture automatically, downloads the correct binary from the
+            latest GitHub Release, verifies the checksum, and places the binary
+            in your PATH.
+          </p>
+          <div class="code-block-wrap">
+            <div class="relative group/block">
+              <pre
+                class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+              ><code id="doc-install-sh">curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh</code></pre>
+              <button
+                onclick="copyCodeRaw('doc-install-sh', 'btn-doc-sh')"
+                id="btn-doc-sh"
+                class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+                title="Copy"
+              >
+                <svg
+                  class="w-3.5 h-3.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path
+                    d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <p>Optionally install a specific version:</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-install-version">BUILDSHARE_VERSION=v0.1.0 curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-install-version', 'btn-doc-version')"
+              id="btn-doc-version"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <p>Optionally specify a custom install directory:</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-install-dir">BUILDSHARE_INSTALL_DIR=/usr/local/bin curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-install-dir', 'btn-doc-dir')"
+              id="btn-doc-dir"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <h3>Windows (PowerShell)</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-install-ps">irm https://vishalkumardev.github.io/cli/install.ps1 | iex</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-install-ps', 'btn-doc-ps')"
+              id="btn-doc-ps"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <h3>Verify Installation</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-verify">buildshare --version</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-verify', 'btn-doc-verify')"
+              id="btn-doc-verify"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ── QUICK START ─────────────────────────────────────── -->
+        <section id="quick-start" class="doc-section">
+          <h2>Quick Start</h2>
+          <p>The typical workflow from login to your first upload:</p>
+
+          <div class="space-y-3 mb-6">
+            <div class="glass-panel rounded-xl p-4 border border-slate-800/60">
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-2"
+              >
+                Step 1 — Authenticate
+              </p>
+              <div class="relative group/block">
+                <pre
+                  class="bg-black/60 rounded-lg p-3 font-mono text-sm text-cyan-300 overflow-x-auto"
+                ><code id="qs-login">buildshare login</code></pre>
+                <button
+                  onclick="copyCodeRaw('qs-login', 'btn-qs-login')"
+                  id="btn-qs-login"
+                  class="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+                  title="Copy"
+                >
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <path
+                      d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 border border-slate-800/60">
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-2"
+              >
+                Step 2 — Upload a Build
+              </p>
+              <div class="relative group/block">
+                <pre
+                  class="bg-black/60 rounded-lg p-3 font-mono text-sm text-cyan-300 overflow-x-auto"
+                ><code id="qs-upload">buildshare upload ./app-release.apk</code></pre>
+                <button
+                  onclick="copyCodeRaw('qs-upload', 'btn-qs-upload')"
+                  id="btn-qs-upload"
+                  class="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+                  title="Copy"
+                >
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <path
+                      d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+              <p class="text-xs text-slate-500 mt-2">
+                The CLI will print a shareable download URL after a successful
+                upload.
+              </p>
+            </div>
+
+            <div class="glass-panel rounded-xl p-4 border border-slate-800/60">
+              <p
+                class="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-2"
+              >
+                Step 3 — View Apps
+              </p>
+              <div class="relative group/block">
+                <pre
+                  class="bg-black/60 rounded-lg p-3 font-mono text-sm text-cyan-300 overflow-x-auto"
+                ><code id="qs-apps">buildshare app list</code></pre>
+                <button
+                  onclick="copyCodeRaw('qs-apps', 'btn-qs-apps')"
+                  id="btn-qs-apps"
+                  class="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+                  title="Copy"
+                >
+                  <svg
+                    class="w-3.5 h-3.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <rect
+                      x="9"
+                      y="9"
+                      width="13"
+                      height="13"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <path
+                      d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── COMMANDS ────────────────────────────────────────── -->
+        <section id="cmd-login" class="doc-section">
+          <h2>Commands</h2>
+
+          <h3><code class="text-indigo-300">buildshare login</code></h3>
+          <p>
+            Authenticate with BuildShare. Opens an interactive prompt for your
+            email and password, or reads the
+            <code class="text-slate-300">BUILDSHARE_TOKEN</code> environment
+            variable for headless/CI usage.
+          </p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-2"
+            ><code id="doc-login">buildshare login
+# or supply token inline
+BUILDSHARE_TOKEN=&lt;your-token&gt; buildshare login</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-login', 'btn-doc-login')"
+              id="btn-doc-login"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--token &lt;token&gt;</code></td>
+                <td>
+                  Provide a personal access token directly instead of
+                  interactive login
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="cmd-logout" class="doc-section">
+          <h3><code class="text-indigo-300">buildshare logout</code></h3>
+          <p>
+            Revoke the stored credentials and remove the local auth token from
+            the config file.
+          </p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-logout">buildshare logout</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-logout', 'btn-doc-logout')"
+              id="btn-doc-logout"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section id="cmd-whoami" class="doc-section">
+          <h3><code class="text-indigo-300">buildshare whoami</code></h3>
+          <p>Display the currently authenticated user and workspace details.</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-whoami">buildshare whoami</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-whoami', 'btn-doc-whoami')"
+              id="btn-doc-whoami"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <section id="cmd-upload" class="doc-section">
+          <h3>
+            <code class="text-indigo-300">buildshare upload &lt;file&gt;</code>
+          </h3>
+          <p>
+            Upload an Android APK or iOS IPA build to BuildShare. Displays
+            real-time progress and prints a shareable download URL on success.
+          </p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-2"
+            ><code id="doc-upload">buildshare upload ./app-release.apk
+buildshare upload ./app.ipa --app my-app-id --notes "Sprint 42 build"
+buildshare upload ./app.apk --ci --json</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-upload', 'btn-doc-upload')"
+              id="btn-doc-upload"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--app &lt;id&gt;</code></td>
+                <td>Target a specific app by its ID or slug</td>
+              </tr>
+              <tr>
+                <td><code>--notes &lt;text&gt;</code></td>
+                <td>Release notes or change description for this build</td>
+              </tr>
+              <tr>
+                <td><code>--ci</code></td>
+                <td>
+                  Run in non-interactive CI mode (suppresses prompts and color
+                  output)
+                </td>
+              </tr>
+              <tr>
+                <td><code>--json</code></td>
+                <td>
+                  Output result as structured JSON instead of human-readable
+                  text
+                </td>
+              </tr>
+              <tr>
+                <td><code>-v, --verbose</code></td>
+                <td>Enable detailed debug logging</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="cmd-app" class="doc-section">
+          <h3><code class="text-indigo-300">buildshare app</code></h3>
+          <p>Sub-commands for managing your applications.</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-2"
+            ><code id="doc-app">buildshare app list          # List all apps in your workspace
+buildshare app list --json  # Output as JSON</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-app', 'btn-doc-app')"
+              id="btn-doc-app"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Sub-command</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>app list</code></td>
+                <td>
+                  List all apps in the current workspace with package IDs and
+                  metadata
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="cmd-build" class="doc-section">
+          <h3><code class="text-indigo-300">buildshare build</code></h3>
+          <p>Sub-commands for inspecting builds.</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-2"
+            ><code id="doc-build">buildshare build list --app &lt;app-id&gt;           # Recent builds for an app
+buildshare build list --app &lt;app-id&gt; --json   # As JSON</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-build', 'btn-doc-build')"
+              id="btn-doc-build"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Sub-command</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>build list</code></td>
+                <td>List the most recent builds for a given app</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="cmd-version" class="doc-section">
+          <h3><code class="text-indigo-300">buildshare version</code></h3>
+          <p>Print the installed version number, commit SHA, and build date.</p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-version-cmd">buildshare version
+buildshare --version</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-version-cmd', 'btn-doc-version-cmd')"
+              id="btn-doc-version-cmd"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ── GLOBAL FLAGS ────────────────────────────────────── -->
+        <section id="global-flags" class="doc-section">
+          <h2>Global Flags</h2>
+          <p>These flags are available on every command:</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Short</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--json</code></td>
+                <td>—</td>
+                <td>
+                  Output results as structured JSON for scripting and automation
+                </td>
+              </tr>
+              <tr>
+                <td><code>--ci</code></td>
+                <td>—</td>
+                <td>
+                  Non-interactive CI mode — suppresses prompts, colors, and
+                  spinners
+                </td>
+              </tr>
+              <tr>
+                <td><code>--verbose</code></td>
+                <td><code>-v</code></td>
+                <td>
+                  Enable debug logging for detailed request/response traces
+                </td>
+              </tr>
+              <tr>
+                <td><code>--help</code></td>
+                <td><code>-h</code></td>
+                <td>Print help information for a command</td>
+              </tr>
+              <tr>
+                <td><code>--version</code></td>
+                <td>—</td>
+                <td>Print the CLI version</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ── ENVIRONMENT VARIABLES ───────────────────────────── -->
+        <section id="env-vars" class="doc-section">
+          <h2>Environment Variables</h2>
+          <p>
+            Environment variables override all flags and config file values,
+            making them ideal for CI/CD secrets.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Variable</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>BUILDSHARE_TOKEN</code></td>
+                <td>
+                  Personal access token. Set this in CI to authenticate without
+                  interactive login.
+                </td>
+              </tr>
+              <tr>
+                <td><code>BUILDSHARE_API_URL</code></td>
+                <td>
+                  Override the base API URL (for self-hosted or staging
+                  environments).
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="note-box">
+            <p>
+              💡 <strong>Tip:</strong> In GitHub Actions, store your token as a
+              secret (<code>Settings → Secrets → Actions</code>) and reference
+              it as <code>${{ secrets.BUILDSHARE_TOKEN }}</code>.
+            </p>
+          </div>
+        </section>
+
+        <!-- ── CI/CD INTEGRATION ──────────────────────────────── -->
+        <section id="cicd" class="doc-section">
+          <h2>CI / CD Integration</h2>
+
+          <h3>GitHub Actions</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-gha">name: Upload Build to BuildShare
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install BuildShare CLI
+        run: curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh
+
+      - name: Build APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload to BuildShare
+        env:
+          BUILDSHARE_TOKEN: ${{ secrets.BUILDSHARE_TOKEN }}
+        run: buildshare upload ./app/build/outputs/apk/release/app-release.apk --ci --json</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-gha', 'btn-doc-gha')"
+              id="btn-doc-gha"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <h3>GitLab CI</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-gitlab">upload_build:
+  stage: deploy
+  script:
+    - curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh
+    - buildshare upload ./app-release.apk --ci --json
+  variables:
+    BUILDSHARE_TOKEN: $BUILDSHARE_TOKEN</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-gitlab', 'btn-doc-gitlab')"
+              id="btn-doc-gitlab"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <h3>Bitbucket Pipelines</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-bb">pipelines:
+  default:
+    - step:
+        name: Upload to BuildShare
+        script:
+          - curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh
+          - buildshare upload ./app-release.apk --ci --json
+        environment:
+          BUILDSHARE_TOKEN: $BUILDSHARE_TOKEN</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-bb', 'btn-doc-bb')"
+              id="btn-doc-bb"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </section>
+
+        <!-- ── EXIT CODES ─────────────────────────────────────── -->
+        <section id="exit-codes" class="doc-section">
+          <h2>Exit Codes</h2>
+          <p>
+            The CLI uses standard exit codes so CI/CD pipelines can
+            automatically detect failures:
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>0</code></td>
+                <td>Success</td>
+              </tr>
+              <tr>
+                <td><code>1</code></td>
+                <td>
+                  General error (authentication failure, network error, invalid
+                  file)
+                </td>
+              </tr>
+              <tr>
+                <td><code>2</code></td>
+                <td>Misuse — invalid command or missing required argument</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ── MANUAL INSTALL ─────────────────────────────────── -->
+        <section id="manual-install" class="doc-section">
+          <h2>Manual Installation</h2>
+          <p>
+            If you prefer manual installation or have restricted network access,
+            download the pre-built binary directly from the
+            <a
+              href="https://github.com/vishalkumardev/cli/releases"
+              target="_blank"
+              rel="noopener"
+              >GitHub Releases</a
+            >
+            page.
+          </p>
+
+          <h3>Available Binaries</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Filename</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>macOS Apple Silicon</td>
+                <td>
+                  <code>buildshare_&lt;version&gt;_darwin_arm64.tar.gz</code>
+                </td>
+              </tr>
+              <tr>
+                <td>macOS Intel</td>
+                <td>
+                  <code>buildshare_&lt;version&gt;_darwin_amd64.tar.gz</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Linux x86_64</td>
+                <td>
+                  <code>buildshare_&lt;version&gt;_linux_amd64.tar.gz</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Linux ARM64</td>
+                <td>
+                  <code>buildshare_&lt;version&gt;_linux_arm64.tar.gz</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Windows x64</td>
+                <td>
+                  <code>buildshare_&lt;version&gt;_windows_amd64.zip</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>macOS / Linux Steps</h3>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-4"
+            ><code id="doc-manual-unix">tar -xzf buildshare_*.tar.gz
+sudo mv buildshare /usr/local/bin/
+sudo chmod +x /usr/local/bin/buildshare
+buildshare --version</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-manual-unix', 'btn-doc-manual-unix')"
+              id="btn-doc-manual-unix"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <h3>Windows Steps</h3>
+          <p>
+            Extract the <code>.zip</code> archive and move
+            <code>buildshare.exe</code> to a directory in your
+            <code>PATH</code> (e.g.
+            <code>%LOCALAPPDATA%\Programs\buildshare\bin</code>). Then open a
+            new terminal and run:
+          </p>
+          <div class="relative group/block">
+            <pre
+              class="bg-black/60 rounded-xl border border-slate-800 p-4 overflow-x-auto font-mono text-sm text-cyan-300 mb-6"
+            ><code id="doc-manual-win">buildshare --version</code></pre>
+            <button
+              onclick="copyCodeRaw('doc-manual-win', 'btn-doc-manual-win')"
+              id="btn-doc-manual-win"
+              class="absolute top-2 right-2 p-1.5 rounded-md bg-slate-700/80 hover:bg-indigo-600 text-slate-400 hover:text-white transition-all opacity-0 group-hover/block:opacity-100"
+              title="Copy"
+            >
+              <svg
+                class="w-3.5 h-3.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path
+                  d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="warn-box">
+            <p>
+              ⚠️ <strong>SHA-256 Checksums:</strong> Every release includes a
+              <code>checksums.txt</code> file you can use to verify binary
+              integrity before installation:
+              <code>shasum -a 256 -c checksums.txt</code>
+            </p>
+          </div>
+        </section>
+
+        <!-- Bottom nav -->
+        <div
+          class="mt-16 pt-8 border-t border-slate-800/60 flex items-center justify-between text-sm"
+        >
+          <a
+            href="index.html"
+            class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              ></path>
+            </svg>
+            Back to Home
+          </a>
+          <a
+            href="https://github.com/vishalkumardev/cli/releases"
+            target="_blank"
+            rel="noopener"
+            class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+          >
+            View Releases
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-[#090d16] py-8 mt-10">
+      <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500"
+      >
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-300">BuildShare CLI</span>
+          <span>&bull;</span>
+          <span>&copy; 2026 BuildShare. All rights reserved.</span>
+        </div>
+        <nav class="flex items-center gap-5">
+          <a href="index.html" class="hover:text-slate-300 transition-colors"
+            >Home</a
+          >
+          <a
+            href="https://github.com/vishalkumardev/cli/releases"
+            class="hover:text-slate-300 transition-colors"
+            >Releases</a
+          >
+          <a
+            href="https://github.com/vishalkumardev/cli/issues"
+            class="hover:text-slate-300 transition-colors"
+            >Issues</a
+          >
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      // Copy for inline icon buttons on docs page (copies innerText of <code> inside <pre>)
+      function copyCodeRaw(codeId, btnId) {
+        const el = document.getElementById(codeId);
+        const text = el ? el.innerText : "";
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById(btnId);
+          if (!btn) return;
+          const orig = btn.innerHTML;
+          btn.innerHTML =
+            '<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>';
+          btn.classList.add("bg-emerald-600/30");
+          setTimeout(() => {
+            btn.innerHTML = orig;
+            btn.classList.remove("bg-emerald-600/30");
+          }, 2000);
+        });
+      }
+
+      // Active sidebar link on scroll
+      (function () {
+        const sections = document.querySelectorAll(".doc-section");
+        const links = document.querySelectorAll(".sidebar-link");
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                const id = entry.target.id;
+                links.forEach((link) => {
+                  link.classList.remove("active");
+                  if (link.getAttribute("href") === `#${id}`) {
+                    link.classList.add("active");
+                  }
+                });
+              }
+            });
+          },
+          { rootMargin: "-20% 0% -70% 0%" },
+        );
+
+        sections.forEach((s) => observer.observe(s));
+      })();
+    </script>
+  </body>
+</html>

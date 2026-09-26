@@ -1,6 +1,6 @@
 # BuildShare CLI
 
-Official command-line tool for [BuildShare](https://buildshare.in) — upload, manage, and distribute mobile app builds (APK / IPA) directly from your terminal or CI/CD pipelines.
+Official command-line tool for **BuildShare** — upload, manage, and distribute mobile app builds (APK / IPA) directly from your terminal or CI/CD pipelines.
 
 ---
 
@@ -18,10 +18,8 @@ Visit the interactive download page to get direct binary downloads for all opera
 Install via the official automated shell script:
 
 ```bash
-curl -fsSL https://buildshare.in/install.sh | sh
+curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh
 ```
-
-*(Or via GitHub Pages: `curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh`)*
 
 Verify your installation:
 
@@ -34,10 +32,8 @@ buildshare --version
 Install via PowerShell:
 
 ```powershell
-irm https://buildshare.in/install.ps1 | iex
+irm https://vishalkumardev.github.io/cli/install.ps1 | iex
 ```
-
-*(Or via GitHub Pages: `irm https://vishalkumardev.github.io/cli/install.ps1 | iex`)*
 
 Verify your installation:
 
@@ -117,15 +113,15 @@ buildshare build list --app <app-id>
 
 ## CLI Commands
 
-| Command | Description |
-|---|---|
-| `buildshare login` | Authenticate with BuildShare |
-| `buildshare logout` | Log out and revoke credentials |
-| `buildshare whoami` | Show current user and workspace |
+| Command                    | Description                         |
+| -------------------------- | ----------------------------------- |
+| `buildshare login`         | Authenticate with BuildShare        |
+| `buildshare logout`        | Log out and revoke credentials      |
+| `buildshare whoami`        | Show current user and workspace     |
 | `buildshare upload <path>` | Upload a new mobile build (APK/IPA) |
-| `buildshare app list` | List apps in your workspace |
-| `buildshare build list` | List recent builds for an app |
-| `buildshare version` | Print version information |
+| `buildshare app list`      | List apps in your workspace         |
+| `buildshare build list`    | List recent builds for an app       |
+| `buildshare version`       | Print version information           |
 
 ### Global Flags
 

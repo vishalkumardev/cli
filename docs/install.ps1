@@ -1,8 +1,8 @@
 # BuildShare CLI Installer for Windows
-# https://buildshare.in
+# https://vishalkumardev.github.io/cli/
 #
 # Usage:
-#   irm https://buildshare.in/install.ps1 | iex
+#   irm https://vishalkumardev.github.io/cli/install.ps1 | iex
 #
 # Environment variables:
 #   $env:BUILDSHARE_INSTALL_DIR  Custom directory to install the binary into
