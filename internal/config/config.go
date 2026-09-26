@@ -18,8 +18,8 @@ type Config struct {
 	CI      bool
 }
 
-// const DefaultAPIURL = "https://api.buildshare.in/api/v1"
-const DefaultAPIURL = "http://localhost:8100/api/v1"
+const DefaultAPIURL = "https://api.buildshare.in/api/v1"
+// const DefaultAPIURL = "http://localhost:8100/api/v1"
 
 // Load resolves configuration with this precedence:
 // CLI flags (already bound via viper) → env vars → project file → user config → defaults
