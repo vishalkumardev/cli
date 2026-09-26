@@ -6,7 +6,7 @@ LDFLAGS := -s -w \
 	-X 'github.com/buildshare/cli/cmd/buildshare.Commit=$(COMMIT)' \
 	-X 'github.com/buildshare/cli/cmd/buildshare.BuildDate=$(DATE)'
 
-.PHONY: build test lint clean release
+.PHONY: build test test-installer lint clean release docs
 
 ## Build for current platform
 build:
@@ -15,6 +15,17 @@ build:
 ## Run tests
 test:
 	go test ./... -v
+
+## Run installer tests
+test-installer:
+	./test/install_test.sh
+
+## Sync installer scripts to docs for GitHub Pages
+docs:
+	@mkdir -p docs
+	cp install.sh install.ps1 docs/
+	touch docs/.nojekyll
+	@echo "✓ docs/ synchronized with latest installer scripts"
 
 ## Lint
 lint:

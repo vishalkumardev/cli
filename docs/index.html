@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BuildShare CLI — Fast, Automated Mobile App Distribution</title>
+  <meta name="description" content="Official command-line tool for BuildShare. Ship Android APKs and iOS IPAs to your team and testers directly from your terminal or CI/CD pipelines.">
+  <meta property="og:title" content="BuildShare CLI — Fast Mobile App Distribution">
+  <meta property="og:description" content="Ship APK and IPA builds to your team directly from terminal with one command.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vishalkumardev.github.io/cli/">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>">
+</head>
+<body>
+  <div class="ambient-glow"></div>
+  <div class="ambient-glow-bottom"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav-wrap">
+      <a href="https://buildshare.in" class="logo-wrap" id="logo-link">
+        <div class="logo-badge">
+          <svg viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <span class="logo-text">BuildShare</span>
+        <span class="logo-tag">CLI</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#quick-install" class="nav-link" id="nav-install">Install</a>
+        <a href="#downloads" class="nav-link" id="nav-downloads">Downloads</a>
+        <a href="#features" class="nav-link" id="nav-features">Features</a>
+        <a href="https://github.com/vishalkumardev/cli" class="btn-github" id="nav-github" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="container">
+    <section class="hero-section">
+      <div class="pill-version" id="version-pill">
+        <span class="pill-dot"></span>
+        <span id="latest-version-text">BuildShare CLI v0.0.2</span>
+      </div>
+
+      <h1>
+        Ship Mobile Builds <br>
+        <span class="gradient-text">Directly from Your Terminal</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Automate APK and IPA distribution to your testers and stakeholders in seconds. Built for developers, designed for CI/CD.
+      </p>
+
+      <!-- Terminal / Installer Box -->
+      <div class="installer-box" id="quick-install">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="os-tabs">
+            <button class="tab-btn active" id="tab-sh" onclick="switchTab('sh')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/></svg>
+              macOS / Linux
+            </button>
+            <button class="tab-btn" id="tab-ps" onclick="switchTab('ps')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+              Windows PowerShell
+            </button>
+          </div>
+        </div>
+
+        <!-- macOS & Linux Tab -->
+        <div class="tab-content active" id="content-sh">
+          <div class="code-container">
+            <span class="code-snippet" id="cmd-sh">curl -fsSL https://buildshare.in/install.sh | sh</span>
+            <button class="copy-btn" id="btn-copy-sh" onclick="copyCode('cmd-sh', 'btn-copy-sh')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy
+            </button>
+          </div>
+          <div class="terminal-note">
+            <span>Also works via GitHub Pages:</span>
+            <code>curl -fsSL https://vishalkumardev.github.io/cli/install.sh | sh</code>
+          </div>
+        </div>
+
+        <!-- Windows Tab -->
+        <div class="tab-content" id="content-ps">
+          <div class="code-container">
+            <span class="code-snippet" id="cmd-ps">irm https://buildshare.in/install.ps1 | iex</span>
+            <button class="copy-btn" id="btn-copy-ps" onclick="copyCode('cmd-ps', 'btn-copy-ps')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy
+            </button>
+          </div>
+          <div class="terminal-note">
+            <span>Also works via GitHub Pages:</span>
+            <code>irm https://vishalkumardev.github.io/cli/install.ps1 | iex</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Direct Binary Downloads Section -->
+    <section id="downloads">
+      <h2 class="section-title">Direct Binary Downloads</h2>
+      <p class="section-subtitle">Download standalone pre-compiled archives directly from GitHub Releases.</p>
+
+      <div class="downloads-grid">
+        <!-- macOS Apple Silicon -->
+        <div class="download-card" id="card-darwin-arm64">
+          <span class="card-badge">Detected</span>
+          <div>
+            <div class="card-header">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.04-2.85 0-.15-.01-.3-.04-.44-.99.04-2.19.66-2.89 1.48-.55.63-.99 1.66-.99 2.7 0 .16.03.31.05.37 1.08.08 2.21-.51 2.83-1.26z"/></svg>
+              </div>
+              <div>
+                <div class="card-platform-title">macOS</div>
+                <div class="card-platform-arch">Apple Silicon (arm64)</div>
+              </div>
+            </div>
+            <p class="feature-desc">For M1, M2, M3, M4 Macs running macOS 11 or later.</p>
+          </div>
+          <a href="https://github.com/vishalkumardev/cli/releases/latest" class="card-action-btn" id="dl-darwin-arm64">
+            Download .tar.gz
+          </a>
+        </div>
+
+        <!-- macOS Intel -->
+        <div class="download-card" id="card-darwin-amd64">
+          <span class="card-badge">Detected</span>
+          <div>
+            <div class="card-header">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 1.04-2.85 0-.15-.01-.3-.04-.44-.99.04-2.19.66-2.89 1.48-.55.63-.99 1.66-.99 2.7 0 .16.03.31.05.37 1.08.08 2.21-.51 2.83-1.26z"/></svg>
+              </div>
+              <div>
+                <div class="card-platform-title">macOS</div>
+                <div class="card-platform-arch">Intel (x86_64)</div>
+              </div>
+            </div>
+            <p class="feature-desc">For Intel-based Mac computers running macOS 10.15+.</p>
+          </div>
+          <a href="https://github.com/vishalkumardev/cli/releases/latest" class="card-action-btn" id="dl-darwin-amd64">
+            Download .tar.gz
+          </a>
+        </div>
+
+        <!-- Linux x64 -->
+        <div class="download-card" id="card-linux-amd64">
+          <span class="card-badge">Detected</span>
+          <div>
+            <div class="card-header">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <div>
+                <div class="card-platform-title">Linux</div>
+                <div class="card-platform-arch">x86_64 (amd64)</div>
+              </div>
+            </div>
+            <p class="feature-desc">For Ubuntu, Debian, CentOS, Fedora, and other distributions.</p>
+          </div>
+          <a href="https://github.com/vishalkumardev/cli/releases/latest" class="card-action-btn" id="dl-linux-amd64">
+            Download .tar.gz
+          </a>
+        </div>
+
+        <!-- Linux ARM64 -->
+        <div class="download-card" id="card-linux-arm64">
+          <span class="card-badge">Detected</span>
+          <div>
+            <div class="card-header">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+              </div>
+              <div>
+                <div class="card-platform-title">Linux</div>
+                <div class="card-platform-arch">ARM64 (aarch64)</div>
+              </div>
+            </div>
+            <p class="feature-desc">For Raspberry Pi 4+, Graviton AWS, and ARM servers.</p>
+          </div>
+          <a href="https://github.com/vishalkumardev/cli/releases/latest" class="card-action-btn" id="dl-linux-arm64">
+            Download .tar.gz
+          </a>
+        </div>
+
+        <!-- Windows x64 -->
+        <div class="download-card" id="card-windows-amd64">
+          <span class="card-badge">Detected</span>
+          <div>
+            <div class="card-header">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+              </div>
+              <div>
+                <div class="card-platform-title">Windows</div>
+                <div class="card-platform-arch">x64 (amd64)</div>
+              </div>
+            </div>
+            <p class="feature-desc">Standalone zip archive containing buildshare.exe.</p>
+          </div>
+          <a href="https://github.com/vishalkumardev/cli/releases/latest" class="card-action-btn" id="dl-windows-amd64">
+            Download .zip
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+      <h2 class="section-title">Built for Speed and Simplicity</h2>
+      <p class="section-subtitle">Everything you need to automate mobile build delivery in your workflow.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          </div>
+          <h3 class="feature-title">Zero Runtime Dependencies</h3>
+          <p class="feature-desc">Self-contained Go binary with no requirement for Node.js, Python, Homebrew, or external interpreters.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+          </div>
+          <h3 class="feature-title">One-Line Uploads</h3>
+          <p class="feature-desc">Upload APKs and IPAs directly with <code>buildshare upload ./app.apk</code> with progress bars and instant shareable links.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+          </div>
+          <h3 class="feature-title">CI / CD Native</h3>
+          <p class="feature-desc">Pass <code>--ci</code> or export <code>BUILDSHARE_TOKEN</code> in GitHub Actions, GitLab CI, Bitbucket, or CircleCI for headless publishing.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <nav class="footer-nav">
+        <a href="https://buildshare.in">BuildShare Website</a>
+        <a href="https://github.com/vishalkumardev/cli">GitHub Repository</a>
+        <a href="https://github.com/vishalkumardev/cli/releases">Release Notes</a>
+        <a href="https://github.com/vishalkumardev/cli/issues">Report an Issue</a>
+      </nav>
+      <p>&copy; 2026 BuildShare. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Tab switching
+    function switchTab(type) {
+      document.getElementById('tab-sh').classList.toggle('active', type === 'sh');
+      document.getElementById('tab-ps').classList.toggle('active', type === 'ps');
+      document.getElementById('content-sh').classList.toggle('active', type === 'sh');
+      document.getElementById('content-ps').classList.toggle('active', type === 'ps');
+    }
+
+    // Code copy
+    function copyCode(snippetId, btnId) {
+      const text = document.getElementById(snippetId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById(btnId);
+        const originalText = btn.innerHTML;
+        btn.classList.add('copied');
+        btn.innerHTML = '✓ Copied!';
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.innerHTML = originalText;
+        }, 2000);
+      });
+    }
+
+    // OS detection and card auto-selection
+    (function detectClient() {
+      const ua = window.navigator.userAgent.toLowerCase();
+      let platform = 'darwin';
+      let arch = 'arm64';
+
+      if (ua.includes('win')) {
+        platform = 'windows';
+        switchTab('ps');
+      } else if (ua.includes('linux')) {
+        platform = 'linux';
+        switchTab('sh');
+      } else {
+        platform = 'darwin';
+        switchTab('sh');
+      }
+
+      // Check architecture
+      if (ua.includes('arm64') || ua.includes('aarch64')) {
+        arch = 'arm64';
+      } else if (ua.includes('x86_64') || ua.includes('win64') || ua.includes('wow64') || ua.includes('amd64')) {
+        arch = 'amd64';
+      }
+
+      const cardId = `card-${platform}-${arch}`;
+      const card = document.getElementById(cardId);
+      if (card) {
+        card.classList.add('detected');
+      }
+    })();
+
+    // Dynamically fetch latest tag and update release download links
+    (function fetchLatestRelease() {
+      const owner = 'vishalkumardev';
+      const repo = 'cli';
+      fetch(`https://api.github.com/repos/${owner}/${repo}/releases/latest`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.tag_name) {
+            const tag = data.tag_name;
+            const tagEl = document.getElementById('latest-version-text');
+            if (tagEl) {
+              tagEl.innerText = `BuildShare CLI ${tag}`;
+            }
+
+            // Update direct download links
+            const setLink = (id, filename) => {
+              const el = document.getElementById(id);
+              if (el) {
+                el.href = `https://github.com/${owner}/${repo}/releases/download/${tag}/${filename}`;
+              }
+            };
+
+            setLink('dl-darwin-arm64', `buildshare_${tag}_darwin_arm64.tar.gz`);
+            setLink('dl-darwin-amd64', `buildshare_${tag}_darwin_amd64.tar.gz`);
+            setLink('dl-linux-amd64', `buildshare_${tag}_linux_amd64.tar.gz`);
+            setLink('dl-linux-arm64', `buildshare_${tag}_linux_arm64.tar.gz`);
+            setLink('dl-windows-amd64', `buildshare_${tag}_windows_amd64.zip`);
+          }
+        })
+        .catch(() => {
+          // Fallback to releases page on network error
+        });
+    })();
+  </script>
+</body>
+</html>
