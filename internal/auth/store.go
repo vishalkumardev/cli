@@ -81,8 +81,12 @@ func ConfigDir() string {
 	return dir
 }
 
-// InitProjectConfig creates a .buildshare.yaml in the current directory.
+// InitProjectConfig creates a project configuration file in the current directory.
 func InitProjectConfig(appID, appName string) error {
-	content := fmt.Sprintf("# BuildShare project configuration\nproject: %s\napp_id: %s\n", appName, appID)
-	return os.WriteFile(filepath.Join(".", ".buildshare.yaml"), []byte(content), 0644)
+	cfg := &config.ProjectConfig{
+		ProjectID:   appID,
+		ProjectName: appName,
+	}
+	return config.SaveProjectConfig(cfg, config.DetectTargetConfigFile())
 }
+

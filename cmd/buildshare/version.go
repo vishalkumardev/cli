@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
@@ -37,5 +38,13 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
+	if Version == "dev" || Version == "" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+			Version = info.Main.Version
+		}
+	}
+	rootCmd.Version = Version
+	rootCmd.SetVersionTemplate("BuildShare CLI {{.Version}}\n")
+	rootCmd.Flags().BoolP("version", "V", false, "Print version information")
 	rootCmd.AddCommand(versionCmd)
 }

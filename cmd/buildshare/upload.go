@@ -3,43 +3,124 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/buildshare/cli/internal/api"
+	"github.com/buildshare/cli/internal/config"
 	"github.com/spf13/cobra"
 )
 
-var uploadChangelog string
-var uploadAppID string
+var (
+	uploadChangelog  string
+	uploadNotes      string
+	uploadAppID      string
+	uploadConfigFile string
+)
 
 var uploadCmd = &cobra.Command{
-	Use:   "upload <file>",
-	Short: "Upload a build (APK/IPA) to BuildShare",
-	Long: `Upload an APK or IPA file to BuildShare.
+	Use:   "upload <platform|file>",
+	Short: "Upload a build (Android APK / iOS IPA) to BuildShare",
+	Long: `Upload a mobile build to BuildShare by platform (android/ios) or direct file path.
 
-Public upload (no auth required, expires in 7 days):
-  buildshare upload my-app.apk
+When specifying a platform, app details are read from a project configuration file (.json or .yaml):
+  buildshare upload android
+  buildshare upload ios
+  buildshare upload android --notes "Sprint 42 test build"
+  buildshare upload android --config ./buildshare.json
 
-Private upload (requires auth + app ID):
-  buildshare upload my-app.apk --app <appId>
-  buildshare upload my-app.apk --app <appId> --changelog "Fixed login bug"`,
+Direct file upload (requires project ID):
+  buildshare upload my-app.apk --app <projectId>
+  buildshare upload my-app.apk --app <projectId> --notes "Fixed login bug"`,
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		filePath := args[0]
+		targetArg := strings.TrimSpace(args[0])
+		lowerArg := strings.ToLower(targetArg)
 		ctx := context.Background()
 
-		var endpoint string
-		if uploadAppID != "" {
-			requireAuth()
-			endpoint = fmt.Sprintf("/builds/%s/upload", uploadAppID)
+		var filePath string
+		var appID string
+		var projectCfg *config.ProjectConfig
+		var configFilePath string
+
+		if lowerArg == "android" || lowerArg == "ios" {
+			platform := lowerArg
+			var err error
+			projectCfg, configFilePath, err = config.LoadProjectConfig(uploadConfigFile)
+			if err != nil {
+				return err
+			}
+
+			printer.Info(fmt.Sprintf("Loaded config from %s", configFilePath))
+
+			var configuredPath string
+			if platform == "android" {
+				configuredPath = projectCfg.GetAndroidPath()
+				if configuredPath == "" {
+					return fmt.Errorf("androidPath is not defined in %s", configFilePath)
+				}
+			} else {
+				configuredPath = projectCfg.GetIOSPath()
+				if configuredPath == "" {
+					return fmt.Errorf("iosPath is not defined in %s", configFilePath)
+				}
+			}
+
+			resolved, err := config.ResolveBuildArtifact(platform, configuredPath, filepath.Dir(configFilePath))
+			if err != nil {
+				return err
+			}
+			filePath = resolved
+
+			appID = projectCfg.GetProjectID()
 		} else {
-			endpoint = "/builds/upload"
+			// Direct file upload mode
+			if _, err := os.Stat(targetArg); err != nil {
+				return fmt.Errorf("invalid platform or file not found: %s (expected 'android', 'ios', or a valid file path)", targetArg)
+			}
+			filePath = targetArg
+
+			// If app ID is not explicitly provided, try to load project config if present
+			if uploadAppID == "" {
+				if cfg, cfgPath, err := config.LoadProjectConfig(uploadConfigFile); err == nil && cfg != nil {
+					projectCfg = cfg
+					configFilePath = cfgPath
+					appID = projectCfg.GetProjectID()
+				}
+			}
 		}
+
+		// CLI flag overrides project config
+		if uploadAppID != "" {
+			appID = uploadAppID
+		}
+
+		if appID == "" {
+			return fmt.Errorf("project ID is required: specify 'projectId' in project config (e.g. buildshare.json), initialize with 'buildshare init', or provide '--app <projectId>'")
+		}
+
+		requireAuth()
+		endpoint := fmt.Sprintf("/builds/%s/upload", appID)
 
 		client := newClient()
 
 		extra := map[string]string{}
-		if uploadChangelog != "" {
-			extra["changelog"] = uploadChangelog
+		notes := uploadChangelog
+		if notes == "" && uploadNotes != "" {
+			notes = uploadNotes
+		}
+		if notes != "" {
+			extra["changelog"] = notes
+		}
+
+		if projectCfg != nil {
+			if name := projectCfg.GetProjectName(); name != "" {
+				printer.KeyValue("Project", name)
+			}
+			if branch := projectCfg.GetDefaultBranch(); branch != "" {
+				printer.KeyValue("Branch", branch)
+			}
 		}
 
 		printer.Info("Uploading " + filePath + "...")
@@ -84,7 +165,9 @@ Private upload (requires auth + app ID):
 }
 
 func init() {
-	uploadCmd.Flags().StringVar(&uploadAppID, "app", "", "App ID for private upload (requires auth)")
+	uploadCmd.Flags().StringVar(&uploadAppID, "app", "", "App / Project ID (overrides config file)")
 	uploadCmd.Flags().StringVar(&uploadChangelog, "changelog", "", "Release notes for this build")
+	uploadCmd.Flags().StringVar(&uploadNotes, "notes", "", "Release notes for this build (alias for --changelog)")
+	uploadCmd.Flags().StringVarP(&uploadConfigFile, "config", "c", "", "Path to project configuration file (.json or .yaml)")
 	rootCmd.AddCommand(uploadCmd)
 }

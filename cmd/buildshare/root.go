@@ -3,10 +3,11 @@ package cmd
 import (
 	"fmt"
 	"os"
+
+	"github.com/buildshare/cli/internal/api"
 	"github.com/buildshare/cli/internal/auth"
 	"github.com/buildshare/cli/internal/config"
 	"github.com/buildshare/cli/internal/output"
-	"github.com/buildshare/cli/internal/api"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ mobile app builds (APK/IPA) to your team from the terminal.
 
 Get started:
   buildshare login
-  buildshare upload my-app.apk`,
+  buildshare upload android`,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
@@ -36,6 +37,13 @@ Get started:
 		cfg.CI = cfg.CI || ciMode
 		cfg.Debug = cfg.Debug || verbose
 		printer = output.New(cfg.JSON, cfg.CI)
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+		if verbose {
+			fmt.Printf("BuildShare CLI %s\n", Version)
+			return
+		}
+		_ = cmd.Help()
 	},
 }
 
@@ -57,11 +65,7 @@ func Execute() {
 // newClient creates an authenticated API client.
 func newClient() *api.Client {
 	token := auth.ResolveToken()
-	baseURL := config.DefaultAPIURL
-	if cfg != nil && cfg.APIURL != "" {
-		baseURL = cfg.APIURL
-	}
-	return api.New(baseURL, token)
+	return api.New(config.APIURL, token)
 }
 
 // requireAuth checks that the user is logged in and exits if not.

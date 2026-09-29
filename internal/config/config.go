@@ -10,7 +10,6 @@ import (
 
 // Config holds all resolved configuration values.
 type Config struct {
-	APIURL  string
 	Token   string
 	Project string
 	Debug   bool
@@ -18,17 +17,14 @@ type Config struct {
 	CI      bool
 }
 
-const DefaultAPIURL = "https://api.buildshare.in/api/v1"
-// const DefaultAPIURL = "http://localhost:8100/api/v1"
+const APIURL = "https://api.buildshare.in/api/v1"
+const DefaultAPIURL = APIURL
 
 // Load resolves configuration with this precedence:
 // CLI flags (already bound via viper) → env vars → project file → user config → defaults
 func Load() *Config {
 	viper.SetEnvPrefix("BUILDSHARE")
 	viper.AutomaticEnv()
-
-	// Defaults
-	viper.SetDefault("api_url", DefaultAPIURL)
 
 	// Load project-level .buildshare.yaml
 	viper.SetConfigName(".buildshare")
@@ -42,7 +38,6 @@ func Load() *Config {
 	_ = viper.MergeInConfig()
 
 	return &Config{
-		APIURL:  viper.GetString("api_url"),
 		Token:   viper.GetString("token"),
 		Project: viper.GetString("project"),
 		Debug:   viper.GetBool("debug"),

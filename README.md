@@ -83,15 +83,36 @@ buildshare whoami
 
 ### 2. Upload a Build
 
-Upload an Android APK or iOS IPA package:
+Upload by platform using a project config file (`buildshare.json` or `buildshare.yaml`):
 
 ```bash
-buildshare upload ./app-release.apk
+# Upload Android build (finds APK automatically from androidPath)
+buildshare upload android
+
+# Upload iOS build (finds IPA automatically from iosPath)
+buildshare upload ios
+
+# Provide release notes
+buildshare upload android --notes "Sprint 42 test build"
 ```
 
-Provide additional release notes or specify an app:
+#### Project Configuration (`buildshare.json` or `buildshare.yaml`)
+Create a `buildshare.json` (or `.yaml`) in your project root:
+
+```json
+{
+  "projectId": "bfb72395-2527-42f8-8de8-5ec67e552510",
+  "projectName": "Jobma Interview",
+  "androidPath": "/path/to/android/app/build/outputs/apk/release",
+  "iosPath": "/path/to/ios/builds",
+  "defaultBranch": "bugs/flow"
+}
+```
+
+You can also upload a specific file directly (requires project ID from config or `--app` flag):
 
 ```bash
+buildshare upload ./app-release.apk --app <app-id>
 buildshare upload ./app-release.ipa --app <app-id> --notes "Sprint 42 test build"
 ```
 
@@ -103,9 +124,13 @@ View all registered applications:
 buildshare app list
 ```
 
-View recent builds:
+View recent builds (interactively selects from all projects or reads local config):
 
 ```bash
+# Interactively select project or use local config
+buildshare build list
+
+# Or specify a project directly
 buildshare build list --app <app-id>
 ```
 
@@ -118,7 +143,7 @@ buildshare build list --app <app-id>
 | `buildshare login`         | Authenticate with BuildShare        |
 | `buildshare logout`        | Log out and revoke credentials      |
 | `buildshare whoami`        | Show current user and workspace     |
-| `buildshare upload <path>` | Upload a new mobile build (APK/IPA) |
+| `buildshare upload <platform\|file>` | Upload a mobile build (`android` / `ios` or APK/IPA file) |
 | `buildshare app list`      | List apps in your workspace         |
 | `buildshare build list`    | List recent builds for an app       |
 | `buildshare version`       | Print version information           |

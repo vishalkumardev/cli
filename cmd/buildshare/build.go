@@ -1,10 +1,14 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/buildshare/cli/internal/api"
+	"github.com/buildshare/cli/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,22 +22,104 @@ var buildCmd = &cobra.Command{
 
 // ── build list ────────────────────────────────────────────────────────────────
 
-var buildListAppID string
+var (
+	buildListAppID      string
+	buildListProjectID  string
+	buildListConfigFile string
+)
 
 var buildListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List builds for an app",
+	Short: "List builds for an app or project",
+	Long: `List builds for a project.
+
+If --app or --project is not provided, you will be prompted to select from your projects:
+  buildshare build list
+  buildshare build list --app <projectId>
+  buildshare build list --project <projectId>`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		requireAuth()
 		ctx := context.Background()
 		client := newClient()
 
-		if buildListAppID == "" {
-			printer.Error("--app flag is required. Usage: buildshare build list --app <appId>")
-			return nil
+		targetAppID := buildListAppID
+		if targetAppID == "" && buildListProjectID != "" {
+			targetAppID = buildListProjectID
 		}
 
-		resp, err := client.Post(ctx, fmt.Sprintf("/builds/%s/list", buildListAppID), api.PaginationRequest{Page: 1, PageSize: 20})
+		var targetAppName string
+
+		// If --app / --project is not provided, check local project config first
+		if targetAppID == "" {
+			if projCfg, _, err := config.LoadProjectConfig(buildListConfigFile); err == nil && projCfg != nil {
+				targetAppID = projCfg.GetProjectID()
+				targetAppName = projCfg.GetProjectName()
+			}
+		}
+
+		// If still empty, fetch and display all projects to select from
+		if targetAppID == "" {
+			resp, err := client.Post(ctx, "/apps/list", api.PaginationRequest{Page: 1, PageSize: 50})
+			if err != nil {
+				return fmt.Errorf("failed to fetch projects: %w", err)
+			}
+
+			var appList api.AppListResponse
+			if err := api.Decode(resp.Data, &appList); err != nil {
+				return err
+			}
+
+			items := appList.Items()
+			if len(items) == 0 {
+				printer.Info("No projects found. Create one with: buildshare app create")
+				return nil
+			}
+
+			if cfg.CI {
+				return fmt.Errorf("--app flag is required in CI mode")
+			}
+
+			printer.Info("Select a project:")
+			for i, app := range items {
+				fmt.Printf("  %d) %s (%s)\n", i+1, app.Name, app.PackageName)
+			}
+			printer.Newline()
+
+			fmt.Print("  Select an option [1]: ")
+			reader := bufio.NewReader(os.Stdin)
+			choice, _ := reader.ReadString('\n')
+			choice = strings.TrimSpace(choice)
+
+			selectedIdx := 0
+			if choice == "" {
+				selectedIdx = 0
+			} else {
+				// Check if user entered an App ID directly
+				for _, app := range items {
+					if strings.EqualFold(choice, app.AppID) {
+						targetAppID = app.AppID
+						targetAppName = app.Name
+						break
+					}
+				}
+
+				if targetAppID == "" {
+					fmt.Sscanf(choice, "%d", &selectedIdx)
+					selectedIdx-- // convert 1-based to 0-based
+				}
+			}
+
+			if targetAppID == "" {
+				if selectedIdx < 0 || selectedIdx >= len(items) {
+					printer.Error("Invalid option selected.")
+					return nil
+				}
+				targetAppID = items[selectedIdx].AppID
+				targetAppName = items[selectedIdx].Name
+			}
+		}
+
+		resp, err := client.Post(ctx, fmt.Sprintf("/builds/%s/list", targetAppID), api.PaginationRequest{Page: 1, PageSize: 20})
 		if err != nil {
 			return err
 		}
@@ -50,7 +136,11 @@ var buildListCmd = &cobra.Command{
 
 		items := list.Items()
 		if len(items) == 0 {
-			printer.Info("No builds found.")
+			if targetAppName != "" {
+				printer.Info(fmt.Sprintf("No builds found for %s.", targetAppName))
+			} else {
+				printer.Info("No builds found.")
+			}
 			return nil
 		}
 
@@ -59,7 +149,12 @@ var buildListCmd = &cobra.Command{
 			total = len(items)
 		}
 
-		printer.Header(fmt.Sprintf("Builds (%d)", total))
+		headerTitle := fmt.Sprintf("Builds (%d)", total)
+		if targetAppName != "" {
+			headerTitle = fmt.Sprintf("Builds for %s (%d)", targetAppName, total)
+		}
+		printer.Header(headerTitle)
+
 		rows := make([][]string, len(items))
 		for i, b := range items {
 			rows[i] = []string{
@@ -119,7 +214,9 @@ var buildInfoCmd = &cobra.Command{
 }
 
 func init() {
-	buildListCmd.Flags().StringVar(&buildListAppID, "app", "", "App ID to list builds for")
+	buildListCmd.Flags().StringVar(&buildListAppID, "app", "", "App / Project ID to list builds for")
+	buildListCmd.Flags().StringVar(&buildListProjectID, "project", "", "App / Project ID to list builds for (alias for --app)")
+	buildListCmd.Flags().StringVarP(&buildListConfigFile, "config", "c", "", "Path to project configuration file (.json or .yaml)")
 
 	buildCmd.AddCommand(buildListCmd)
 	buildCmd.AddCommand(buildInfoCmd)
