@@ -37,7 +37,9 @@ var whoamiCmd = &cobra.Command{
 
 		creds := auth.Load()
 		source := "stored credentials"
-		if t := auth.ResolveToken(); creds == nil || t != creds.Token {
+		if tokenFlag != "" {
+			source = "--token flag"
+		} else if t := auth.ResolveToken(); creds == nil || t != creds.Token {
 			source = "BUILDSHARE_TOKEN env"
 		}
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/buildshare/cli/internal/api"
 	"github.com/buildshare/cli/internal/auth"
+	"github.com/buildshare/cli/internal/config"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -18,9 +19,10 @@ var loginAPIKey string
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Authenticate with BuildShare",
-	Long: `Log in to your BuildShare account using email OTP.
+	Long: `Log in to your BuildShare account using email OTP, API key, or token.
 
-For CI/CD, use an API key instead:
+For CI/CD or non-interactive login:
+  buildshare login --token <token>
   buildshare login --api-key <key>
 
 Or set the BUILDSHARE_TOKEN environment variable.`,
@@ -28,15 +30,20 @@ Or set the BUILDSHARE_TOKEN environment variable.`,
 		ctx := context.Background()
 		client := newClient()
 
-		// API key flow
-		if loginAPIKey != "" {
-			return loginWithAPIKey(ctx, client, loginAPIKey)
+		tokenOrKey := tokenFlag
+		if tokenOrKey == "" {
+			tokenOrKey = loginAPIKey
+		}
+
+		// Token or API key flow
+		if tokenOrKey != "" {
+			return loginWithTokenOrKey(ctx, client, tokenOrKey)
 		}
 
 		// Interactive OTP flow
 		if cfg.CI {
 			printer.Error("Interactive login is not available in CI mode.")
-			fmt.Fprintln(os.Stderr, "\nUse:\n    buildshare login --api-key <key>\n\nor:\n    BUILDSHARE_TOKEN=<token> buildshare <command>")
+			fmt.Fprintln(os.Stderr, "\nUse:\n    buildshare login --token <token>\n    buildshare login --api-key <key>\n\nor:\n    BUILDSHARE_TOKEN=<token> buildshare <command>")
 			os.Exit(2)
 		}
 
@@ -45,7 +52,8 @@ Or set the BUILDSHARE_TOKEN environment variable.`,
 }
 
 func init() {
-	loginCmd.Flags().StringVar(&loginAPIKey, "api-key", "", "Authenticate using an API key (for CI/CD)")
+	loginCmd.Flags().StringVar(&loginAPIKey, "api-key", "", "Authenticate using an API key (alias for --token)")
+	loginCmd.Flags().StringVarP(&loginAPIKey, "key", "k", "", "Authenticate using an API key (shorthand)")
 	rootCmd.AddCommand(loginCmd)
 }
 
@@ -133,6 +141,30 @@ func loginInteractive(ctx context.Context, client *api.Client) error {
 	return nil
 }
 
+func loginWithTokenOrKey(ctx context.Context, client *api.Client, tokenOrKey string) error {
+	tokenOrKey = strings.TrimSpace(tokenOrKey)
+	if tokenOrKey == "" {
+		printer.Error("Token or API key is required.")
+		return nil
+	}
+
+	if strings.HasPrefix(tokenOrKey, "sk_") {
+		return loginWithAPIKey(ctx, client, tokenOrKey)
+	}
+
+	if strings.HasPrefix(tokenOrKey, "ey") {
+		return loginWithAccessToken(ctx, tokenOrKey)
+	}
+
+	// Try API key verification first
+	if err := loginWithAPIKey(ctx, client, tokenOrKey); err == nil {
+		return nil
+	}
+
+	// Fallback to access token verification
+	return loginWithAccessToken(ctx, tokenOrKey)
+}
+
 func loginWithAPIKey(ctx context.Context, client *api.Client, key string) error {
 	printer.Info("Verifying API key...")
 
@@ -157,5 +189,33 @@ func loginWithAPIKey(ctx context.Context, client *api.Client, key string) error 
 	}
 
 	printer.Success(fmt.Sprintf("Authenticated as %s (%s)", result.User.Name, result.User.Email))
+	return nil
+}
+
+func loginWithAccessToken(ctx context.Context, token string) error {
+	printer.Info("Verifying token...")
+
+	authClient := api.New(config.APIURL, token)
+	resp, err := authClient.Get(ctx, "/user/profile")
+	if err != nil {
+		return fmt.Errorf("token verification failed: %w", err)
+	}
+
+	var profile api.UserProfile
+	if err := api.Decode(resp.Data, &profile); err != nil {
+		return fmt.Errorf("unexpected response: %w", err)
+	}
+
+	if err := auth.Save(&auth.Credentials{
+		Token:  token,
+		Email:  profile.Email,
+		Name:   profile.Name,
+		UserID: profile.UserID,
+	}); err != nil {
+		printer.Warn("Could not save credentials: " + err.Error())
+		return nil
+	}
+
+	printer.Success(fmt.Sprintf("Authenticated as %s (%s)", profile.Name, profile.Email))
 	return nil
 }

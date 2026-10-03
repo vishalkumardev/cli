@@ -15,6 +15,7 @@ var (
 	jsonOutput bool
 	ciMode     bool
 	verbose    bool
+	tokenFlag  string
 	cfg        *config.Config
 	printer    *output.Printer
 )
@@ -36,6 +37,9 @@ Get started:
 		cfg.JSON = cfg.JSON || jsonOutput
 		cfg.CI = cfg.CI || ciMode
 		cfg.Debug = cfg.Debug || verbose
+		if tokenFlag != "" {
+			cfg.Token = tokenFlag
+		}
 		printer = output.New(cfg.JSON, cfg.CI)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -51,6 +55,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	rootCmd.PersistentFlags().BoolVar(&ciMode, "ci", false, "CI mode (no colors, no prompts)")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable debug output")
+	rootCmd.PersistentFlags().StringVarP(&tokenFlag, "token", "t", "", "BuildShare auth token or API key")
 }
 
 // Execute runs the root command.
@@ -64,13 +69,16 @@ func Execute() {
 
 // newClient creates an authenticated API client.
 func newClient() *api.Client {
-	token := auth.ResolveToken()
+	token := tokenFlag
+	if token == "" {
+		token = auth.ResolveToken()
+	}
 	return api.New(config.APIURL, token)
 }
 
 // requireAuth checks that the user is logged in and exits if not.
 func requireAuth() {
-	if !auth.IsLoggedIn() {
+	if tokenFlag == "" && !auth.IsLoggedIn() {
 		p := output.New(jsonOutput, ciMode)
 		p.Error("Not logged in.")
 		fmt.Fprintln(os.Stderr, "\nRun:\n\n    buildshare login\n\nor provide a token:\n\n    BUILDSHARE_TOKEN=<token> buildshare <command>")

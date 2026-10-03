@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"time"
 )
 
@@ -18,6 +20,7 @@ type Client struct {
 	BaseURL    string
 	Token      string
 	HTTPClient *http.Client
+	mu         sync.Mutex
 }
 
 // New creates a new API client.
@@ -41,7 +44,60 @@ type APIResponse struct {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+func (c *Client) resolveToken(ctx context.Context) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if strings.HasPrefix(c.Token, "sk_") {
+		payload, err := json.Marshal(VerifyAPIKeyRequest{APIKey: c.Token})
+		if err != nil {
+			return err
+		}
+		url := c.BaseURL + "/api-key/verify"
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(payload))
+		if err != nil {
+			return err
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err := c.HTTPClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("network error during API key verification: %w", err)
+		}
+		defer resp.Body.Close()
+
+		raw, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read response: %w", err)
+		}
+
+		var apiResp APIResponse
+		if err := json.Unmarshal(raw, &apiResp); err != nil {
+			return fmt.Errorf("unexpected response from server during verification (HTTP %d)", resp.StatusCode)
+		}
+
+		if !apiResp.Success {
+			return &APIError{
+				StatusCode: resp.StatusCode,
+				Message:    apiResp.Message,
+			}
+		}
+
+		var result APIKeyVerifyResult
+		if err := json.Unmarshal(apiResp.Data, &result); err != nil {
+			return fmt.Errorf("failed to decode verification response: %w", err)
+		}
+
+		c.Token = result.AccessToken
+	}
+	return nil
+}
+
 func (c *Client) newRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
+	if path != "/api-key/verify" && strings.HasPrefix(c.Token, "sk_") {
+		if err := c.resolveToken(ctx); err != nil {
+			return nil, err
+		}
+	}
 	url := c.BaseURL + path
 	req, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {

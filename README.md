@@ -69,10 +69,16 @@ If you prefer to install manually or your system has restricted network access:
 
 ### 1. Authenticate
 
-Log in with your BuildShare account credentials or personal access token:
+Log in with your BuildShare account credentials or personal access token / API key:
 
 ```bash
+# Interactive OTP login
 buildshare login
+
+# Or non-interactive login via token / API key
+buildshare login --token <your_token_or_api_key>
+# or
+buildshare login --api-key <your_api_key>
 ```
 
 Check your authenticated user details:
@@ -150,6 +156,7 @@ buildshare build list --app <app-id>
 
 ### Global Flags
 
+- `-t, --token`: BuildShare auth token or API key.
 - `--json`: Output command results as structured JSON (ideal for automation and scripts).
 - `--ci`: Run in non-interactive CI mode (disables prompts and colors).
 - `-v, --verbose`: Enable detailed debug logging.
