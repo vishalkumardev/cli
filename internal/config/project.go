@@ -161,7 +161,23 @@ func ResolveBuildArtifact(platform, configuredPath, configDir string) (string, e
 
 	fi, err := os.Stat(resolvedPath)
 	if err != nil {
-		return "", fmt.Errorf("configured %s path does not exist: %s", platform, resolvedPath)
+		// If the file/path does not exist directly, try finding the nearest existing parent directory
+		dir := filepath.Dir(resolvedPath)
+		for i := 0; i < 4; i++ {
+			if dir == "." || dir == "/" || dir == "" {
+				break
+			}
+			if dfi, derr := os.Stat(dir); derr == nil && dfi.IsDir() {
+				resolvedPath = dir
+				fi = dfi
+				err = nil
+				break
+			}
+			dir = filepath.Dir(dir)
+		}
+		if err != nil {
+			return "", fmt.Errorf("configured %s path does not exist: %s", platform, resolvedPath)
+		}
 	}
 
 	normPlatform := strings.ToLower(strings.TrimSpace(platform))
@@ -256,6 +272,108 @@ func ResolveBuildArtifact(platform, configuredPath, configDir string) (string, e
 	})
 
 	return candidates[0].path, nil
+}
+
+// StandardAndroidSearchPaths contains common default output paths for Android builds.
+var StandardAndroidSearchPaths = []string{
+	"./android/app/build/outputs/apk/release",
+	"./android/app/build/outputs/apk",
+	"./app/build/outputs/apk/release",
+	"./app/build/outputs/apk",
+	"./android/app/build/outputs",
+	"./build/app/outputs/flutter-apk",
+	"./android",
+	".",
+}
+
+// StandardIOSSearchPaths contains common default output paths for iOS builds.
+var StandardIOSSearchPaths = []string{
+	"./ios/build",
+	"./build/ios/ipa",
+	"./build/ios",
+	"./ios",
+	".",
+}
+
+// ResolveArtifactFromFileOrDir resolves an APK/IPA file from a given path (file, directory, or pattern).
+// If inputPath does not exist, it searches parent directories and standard paths for matching artifacts.
+func ResolveArtifactFromFileOrDir(inputPath, platform string) (string, error) {
+	normPlatform := strings.ToLower(strings.TrimSpace(platform))
+	if normPlatform == "" {
+		normPlatform = "auto"
+	}
+
+	if inputPath == "" {
+		// Auto-discover in standard paths
+		var pathsToTry []string
+		if normPlatform == "android" {
+			pathsToTry = StandardAndroidSearchPaths
+		} else if normPlatform == "ios" {
+			pathsToTry = StandardIOSSearchPaths
+		} else {
+			pathsToTry = append(StandardAndroidSearchPaths, StandardIOSSearchPaths...)
+		}
+		for _, p := range pathsToTry {
+			if fi, err := os.Stat(p); err == nil && fi.IsDir() {
+				if candidate, err := ResolveBuildArtifact(normPlatform, p, ""); err == nil && candidate != "" {
+					return candidate, nil
+				}
+			}
+		}
+		return "", fmt.Errorf("no build artifact found in standard output directories")
+	}
+
+	expanded := expandHome(inputPath)
+
+	// 1. Direct file check
+	if fi, err := os.Stat(expanded); err == nil {
+		if !fi.IsDir() {
+			return expanded, nil
+		}
+		// It's a directory: find artifact inside it
+		return ResolveBuildArtifact(normPlatform, expanded, "")
+	}
+
+	// 2. Glob pattern check
+	if strings.ContainsAny(expanded, "*?[") {
+		matches, err := filepath.Glob(expanded)
+		if err == nil && len(matches) > 0 {
+			var validExts []string
+			if normPlatform == "android" {
+				validExts = []string{".apk", ".aab"}
+			} else if normPlatform == "ios" {
+				validExts = []string{".ipa"}
+			} else {
+				validExts = []string{".apk", ".ipa", ".aab"}
+			}
+			for _, m := range matches {
+				ext := strings.ToLower(filepath.Ext(m))
+				for _, v := range validExts {
+					if ext == v {
+						return m, nil
+					}
+				}
+			}
+		}
+	}
+
+	// 3. Parent directory search if target file doesn't exist
+	// (e.g. user specified ./android/app/build/outputs/apk/release/app-release.apk but Gradle generated app-release-unsigned.apk)
+	dir := filepath.Dir(expanded)
+	for i := 0; i < 4; i++ {
+		if dir == "." || dir == "/" || dir == "" {
+			break
+		}
+		if fi, err := os.Stat(dir); err == nil && fi.IsDir() {
+			if candidate, err := ResolveBuildArtifact(normPlatform, dir, ""); err == nil && candidate != "" {
+				return candidate, nil
+			}
+			break
+		}
+		dir = filepath.Dir(dir)
+	}
+
+	return "", fmt.Errorf("file or build artifact not found: %s", inputPath)
 }
 
 func expandHome(path string) string {

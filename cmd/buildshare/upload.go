@@ -20,7 +20,7 @@ var (
 )
 
 var uploadCmd = &cobra.Command{
-	Use:   "upload <platform|file>",
+	Use:   "upload [platform|file]",
 	Short: "Upload a build (Android APK / iOS IPA) to BuildShare",
 	Long: `Upload a mobile build to BuildShare by platform (android/ios) or direct file path.
 
@@ -33,9 +33,29 @@ When specifying a platform, app details are read from a project configuration fi
 Direct file upload (requires project ID):
   buildshare upload my-app.apk --app <projectId>
   buildshare upload my-app.apk --app <projectId> --notes "Fixed login bug"`,
-	Args: cobra.ExactArgs(1),
+	Args: cobra.ArbitraryArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		targetArg := strings.TrimSpace(args[0])
+		var targetArg string
+		if len(args) == 1 {
+			targetArg = strings.TrimSpace(args[0])
+		} else if len(args) > 1 {
+			// Multiple arguments passed (e.g. unquoted glob or extra parameters)
+			// Search for an argument that is a build artifact (.apk, .ipa, .aab) or platform
+			for _, arg := range args {
+				lower := strings.ToLower(arg)
+				if lower == "android" || lower == "ios" ||
+					strings.HasSuffix(lower, ".apk") ||
+					strings.HasSuffix(lower, ".ipa") ||
+					strings.HasSuffix(lower, ".aab") {
+					targetArg = arg
+					break
+				}
+			}
+			if targetArg == "" {
+				targetArg = strings.TrimSpace(args[0])
+			}
+		}
+
 		lowerArg := strings.ToLower(targetArg)
 		ctx := context.Background()
 
@@ -44,42 +64,63 @@ Direct file upload (requires project ID):
 		var projectCfg *config.ProjectConfig
 		var configFilePath string
 
+		if uploadAppID == "***" {
+			return fmt.Errorf("invalid app ID '***'. This appears to be a secret masked in GitHub Actions logs. Please pass your actual project ID or set BUILDSHARE_APP_ID")
+		}
+		if uploadAppID == "" {
+			if envApp := os.Getenv("BUILDSHARE_APP_ID"); envApp != "" {
+				uploadAppID = envApp
+			} else if envApp := os.Getenv("BUILDSHARE_PROJECT_ID"); envApp != "" {
+				uploadAppID = envApp
+			}
+		}
+
 		if lowerArg == "android" || lowerArg == "ios" {
 			platform := lowerArg
 			var err error
 			projectCfg, configFilePath, err = config.LoadProjectConfig(uploadConfigFile)
-			if err != nil {
-				return err
-			}
+			if err == nil && projectCfg != nil {
+				printer.Info(fmt.Sprintf("Loaded config from %s", configFilePath))
 
-			printer.Info(fmt.Sprintf("Loaded config from %s", configFilePath))
-
-			var configuredPath string
-			if platform == "android" {
-				configuredPath = projectCfg.GetAndroidPath()
-				if configuredPath == "" {
-					return fmt.Errorf("androidPath is not defined in %s", configFilePath)
+				var configuredPath string
+				if platform == "android" {
+					configuredPath = projectCfg.GetAndroidPath()
+				} else {
+					configuredPath = projectCfg.GetIOSPath()
 				}
-			} else {
-				configuredPath = projectCfg.GetIOSPath()
-				if configuredPath == "" {
-					return fmt.Errorf("iosPath is not defined in %s", configFilePath)
+
+				if configuredPath != "" {
+					resolved, rerr := config.ResolveBuildArtifact(platform, configuredPath, filepath.Dir(configFilePath))
+					if rerr == nil {
+						filePath = resolved
+					}
 				}
+
+				appID = projectCfg.GetProjectID()
 			}
 
-			resolved, err := config.ResolveBuildArtifact(platform, configuredPath, filepath.Dir(configFilePath))
+			// If filePath was not resolved from config file, auto-discover in standard paths
+			if filePath == "" {
+				resolved, rerr := config.ResolveArtifactFromFileOrDir("", platform)
+				if rerr != nil {
+					if err != nil {
+						return fmt.Errorf("could not locate %s build artifact and no valid config found: %w", platform, err)
+					}
+					return fmt.Errorf("no %s build artifact found in standard output paths: %w", platform, rerr)
+				}
+				filePath = resolved
+				printer.Info(fmt.Sprintf("Discovered %s build artifact at: %s", platform, filePath))
+			}
+		} else if targetArg != "" {
+			// Direct file / directory / pattern upload mode
+			resolved, err := config.ResolveArtifactFromFileOrDir(targetArg, "auto")
 			if err != nil {
-				return err
-			}
-			filePath = resolved
-
-			appID = projectCfg.GetProjectID()
-		} else {
-			// Direct file upload mode
-			if _, err := os.Stat(targetArg); err != nil {
 				return fmt.Errorf("invalid platform or file not found: %s (expected 'android', 'ios', or a valid file path)", targetArg)
 			}
-			filePath = targetArg
+			if resolved != targetArg {
+				printer.Info(fmt.Sprintf("Located build artifact: %s", resolved))
+			}
+			filePath = resolved
 
 			// If app ID is not explicitly provided, try to load project config if present
 			if uploadAppID == "" {
@@ -88,6 +129,35 @@ Direct file upload (requires project ID):
 					configFilePath = cfgPath
 					appID = projectCfg.GetProjectID()
 				}
+			}
+		} else {
+			// No target argument provided: auto-detect from project config or filesystem
+			if cfg, cfgPath, err := config.LoadProjectConfig(uploadConfigFile); err == nil && cfg != nil {
+				projectCfg = cfg
+				configFilePath = cfgPath
+				appID = projectCfg.GetProjectID()
+				printer.Info(fmt.Sprintf("Loaded config from %s", configFilePath))
+
+				if p := projectCfg.GetAndroidPath(); p != "" {
+					if resolved, err := config.ResolveBuildArtifact("android", p, filepath.Dir(configFilePath)); err == nil {
+						filePath = resolved
+					}
+				}
+				if filePath == "" {
+					if p := projectCfg.GetIOSPath(); p != "" {
+						if resolved, err := config.ResolveBuildArtifact("ios", p, filepath.Dir(configFilePath)); err == nil {
+							filePath = resolved
+						}
+					}
+				}
+			}
+			if filePath == "" {
+				resolved, err := config.ResolveArtifactFromFileOrDir("", "auto")
+				if err != nil {
+					return fmt.Errorf("no build artifact specified and none found in standard build directories\nUsage: buildshare upload <android|ios|path-to-file> --app <projectId>")
+				}
+				filePath = resolved
+				printer.Info(fmt.Sprintf("Auto-detected build artifact: %s", filePath))
 			}
 		}
 
@@ -166,6 +236,7 @@ Direct file upload (requires project ID):
 
 func init() {
 	uploadCmd.Flags().StringVar(&uploadAppID, "app", "", "App / Project ID (overrides config file)")
+	uploadCmd.Flags().StringVar(&uploadAppID, "project", "", "App / Project ID (alias for --app)")
 	uploadCmd.Flags().StringVar(&uploadChangelog, "changelog", "", "Release notes for this build")
 	uploadCmd.Flags().StringVar(&uploadNotes, "notes", "", "Release notes for this build (alias for --changelog)")
 	uploadCmd.Flags().StringVarP(&uploadConfigFile, "config", "c", "", "Path to project configuration file (.json or .yaml)")
